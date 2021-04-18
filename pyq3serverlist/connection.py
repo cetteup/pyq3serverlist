@@ -86,7 +86,8 @@ class Connection:
 
     def close(self) -> bool:
         if isinstance(self.__socket, socket.socket):
-            self.__socket.shutdown(socket.SHUT_RDWR)
+            if self.__is_connected:
+                self.__socket.shutdown(socket.SHUT_RDWR)
             self.__socket.close()
             self.__is_connected = False
             return True
