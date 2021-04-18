@@ -7,14 +7,16 @@ from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
 class Connection:
     __address: str
     __port: int
+    __protocol: int
     __socket: socket.socket
     __timeout: float = 2.0
     __is_connected: bool = False
     __buffer: bytes = b''
 
-    def __init__(self, address: str, port: int):
+    def __init__(self, address: str, port: int, protocol: int = socket.SOCK_DGRAM):
         self.__address = address
         self.__port = port
+        self.__protocol = protocol
 
     def set_timeout(self, timeout: float) -> None:
         self.__timeout = timeout
@@ -29,7 +31,7 @@ class Connection:
         if self.__is_connected:
             return
 
-        self.__socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.__socket = socket.socket(socket.AF_INET, self.__protocol)
 
         self.__set_timeout_option(self.__timeout)
 
