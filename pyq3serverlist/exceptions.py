@@ -4,4 +4,4 @@ class PyQ3SLError(Exception):
 
 class PyQ3SLTimeoutError(PyQ3SLError):
     def __init__(self, message: str):
-        super(message)
+        super().__init__(message)
