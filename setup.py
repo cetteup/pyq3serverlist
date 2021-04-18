@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='pyq3serverlist',
-    version='0.1.0',
+    version='0.1.1',
     description='Simple Python library for querying Quake 3 based principal servers and their game servers',
     url='https://github.com/cetteup/pyq3serverlist',
     author='cetteup',
