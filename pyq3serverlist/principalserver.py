@@ -2,7 +2,7 @@ from .connection import Connection
 from .server import Server
 
 
-class MasterServer:
+class PrincipalServer:
     __address: str
     __port: int
     __connection: Connection
