@@ -70,6 +70,7 @@ class Connection:
 
             buffer_end = buffer[-10:]
             receive_next = len(buffer) >= last_packet_length and b'EOT' in buffer_end and b'EOF' not in buffer_end
+            last_packet_length = len(buffer)
 
         return self.__buffer
 
