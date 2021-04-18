@@ -97,6 +97,3 @@ class Connection:
             return True
 
         return False
-
-
-
