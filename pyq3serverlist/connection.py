@@ -39,6 +39,9 @@ class Connection:
         except socket.timeout:
             self.__is_connected = False
             raise PyQ3SLTimeoutError(f'Connection attempt to {self.__address}:{self.__port} timed out')
+        except socket.error as e:
+            self.__is_connected = False
+            raise PyQ3SLError(f'Failed to connect to {self.__address}:{self.__port} ({e})')
 
     def write(self, data: bytes) -> None:
         if not self.__is_connected:
