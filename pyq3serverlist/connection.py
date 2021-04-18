@@ -78,7 +78,9 @@ class Connection:
             self.__buffer += buffer
 
             buffer_end = buffer[-10:]
-            receive_next = len(buffer) >= last_packet_length and b'EOT' in buffer_end and b'EOF' not in buffer_end
+            # Continue to try reading from socket until packets get shorter or peer indicates EOF (in case of TCP)
+            receive_next = (self.__protocol == socket.SOCK_DGRAM and len(buffer) >= last_packet_length) or \
+                           (self.__protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end)
             last_packet_length = len(buffer)
 
         return self.__buffer
