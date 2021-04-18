@@ -62,7 +62,11 @@ class Connection:
                 # Packet size differs from server to server => just read up to max possible UDP size
                 buffer = self.__socket.recv(65507)
             except socket.timeout:
-                raise PyQ3SLTimeoutError('Timed out while receiving server data')
+                # Raise exception if no data was retrieved at all, else break loop
+                if self.__buffer == b'':
+                    raise PyQ3SLTimeoutError('Timed out while receiving server data')
+                else:
+                    break
             except socket.error:
                 raise PyQ3SLError('Failed to receive data from server')
 
