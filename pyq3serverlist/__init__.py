@@ -1,4 +1,5 @@
 from .connection import Connection
+from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
 from .principalserver import PrincipalServer
 from .server import Server
 
@@ -11,4 +12,4 @@ Simple Python library for querying Quake 3 based principal servers and their gam
 __version__ = '0.1.0'
 __author__ = 'cetteup'
 __credits__ = 'https://github.com/jacklul'
-__all__ = ['Connection', 'PrincipalServer', 'Server']
+__all__ = ['Connection', 'PrincipalServer', 'Server', 'PyQ3SLError', 'PyQ3SLTimeoutError']
