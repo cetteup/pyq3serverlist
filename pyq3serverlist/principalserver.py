@@ -1,5 +1,7 @@
 import socket
+from typing import List
 
+from .exceptions import PyQ3SLError
 from .connection import Connection
 from .server import Server
 
@@ -21,6 +23,9 @@ class PrincipalServer:
 
     def __parse_data(self, data: bytes) -> list:
         servers = []
+
+        if not data.startswith(b'\xff' * 4 + b'getserversResponse'):
+            raise PyQ3SLError('Principal returned invalid data')
 
         """
         Some 3rd party implementations of the protocol prefix every server entry with the same
@@ -44,7 +49,7 @@ class PrincipalServer:
 
         return servers
 
-    def get_servers(self, keywords: str = 'full empty', timeout: float = 1.0) -> list:
+    def get_servers(self, keywords: str = 'full empty', timeout: float = 1.0) -> List[Server]:
         self.__connection.set_timeout(timeout)
 
         command = f'getservers {self.__query_protocol} {keywords}'
