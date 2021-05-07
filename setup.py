@@ -8,9 +8,6 @@ setup(
     author='cetteup',
     author_email='me@cetteup.com',
     license='MIT',
-    packages=['pyq3serverlist'],
-    install_requires=[],
-
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',
@@ -18,4 +15,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3'
     ],
+    packages=['pyq3serverlist'],
+    python_requires='>=3.6'
 )
