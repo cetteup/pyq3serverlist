@@ -17,8 +17,6 @@ class Connection:
         self.__address = address
         self.__port = port
         self.__protocol = protocol
-        self.__socket = socket.socket(socket.AF_INET, self.__protocol)
-        self.__set_timeout_option(self.__timeout)
 
     def set_timeout(self, timeout: float) -> None:
         self.__timeout = timeout
@@ -32,6 +30,10 @@ class Connection:
     def connect(self) -> None:
         if self.__is_connected:
             return
+
+        self.__socket = socket.socket(socket.AF_INET, self.__protocol)
+
+        self.__set_timeout_option(self.__timeout)
 
         try:
             self.__socket.connect((self.__address, self.__port))
@@ -87,7 +89,7 @@ class Connection:
         self.close()
 
     def close(self) -> bool:
-        if isinstance(self.__socket, socket.socket):
+        if hasattr(self, '__socket') and isinstance(self.__socket, socket.socket):
             if self.__is_connected:
                 self.__socket.shutdown(socket.SHUT_RDWR)
             self.__socket.close()
