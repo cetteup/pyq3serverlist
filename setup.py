@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name='pyq3serverlist',
-    version='0.1.3',
+    version='0.1.4',
     description='Simple Python library for querying Quake 3 based principal servers and their game servers',
     long_description=long_description,
     long_description_content_type='text/markdown',
