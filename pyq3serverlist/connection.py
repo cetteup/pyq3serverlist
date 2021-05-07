@@ -89,7 +89,7 @@ class Connection:
         self.close()
 
     def close(self) -> bool:
-        if isinstance(self.__socket, socket.socket):
+        if hasattr(self, '__socket') and isinstance(self.__socket, socket.socket):
             if self.__is_connected:
                 self.__socket.shutdown(socket.SHUT_RDWR)
             self.__socket.close()
