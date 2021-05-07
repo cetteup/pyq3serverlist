@@ -3,9 +3,17 @@ from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
 
 principal = PrincipalServer('master.quake3arena.com', 27950, 68)
 
+servers = []
 try:
     servers = principal.get_servers()
     print(servers)
 except (PyQ3SLError, PyQ3SLTimeoutError) as e:
     print(e)
+
+for server in servers:
+    try:
+        info = server.get_status()
+        print(info)
+    except (PyQ3SLError, PyQ3SLTimeoutError) as e:
+        print(e)
 
