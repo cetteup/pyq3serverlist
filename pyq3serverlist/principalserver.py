@@ -1,4 +1,5 @@
 import socket
+from typing import List
 
 from .exceptions import PyQ3SLError
 from .connection import Connection
@@ -48,7 +49,7 @@ class PrincipalServer:
 
         return servers
 
-    def get_servers(self, keywords: str = 'full empty', timeout: float = 1.0) -> list:
+    def get_servers(self, keywords: str = 'full empty', timeout: float = 1.0) -> List[Server]:
         self.__connection.set_timeout(timeout)
 
         command = f'getservers {self.__query_protocol} {keywords}'
