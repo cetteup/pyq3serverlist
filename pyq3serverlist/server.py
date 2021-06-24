@@ -28,12 +28,14 @@ class Server:
         elements = player_data.split(b' ', 3)
         frags = int(elements.pop(0))
         ping = int(elements.pop(0))
-        name = self.__strip_colors(elements.pop().decode('latin1')).replace('"', '')
+        name = elements.pop().decode('latin1').replace('"', '')
+        name_clean = self.__strip_colors(name).replace('"', '')
 
         return {
             'frags': frags,
             'ping': ping,
-            'name': name
+            'name_clean': name_clean,
+            'name': name,
         }
 
     def __parse_data(self, data: bytes) -> dict:
