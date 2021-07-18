@@ -11,15 +11,17 @@ class PrincipalServer:
     __port: int
     __connection: Connection
     __query_protocol: int
+    __game_name: str
     __server_entry_prefix: bytes
 
-    def __init__(self, address: str, port: int, query_protocol: int,
+    def __init__(self, address: str, port: int, query_protocol: int, game_name: str = '',
                  network_protocol: int = socket.SOCK_DGRAM, server_entry_prefix: bytes = b''):
         self.__address = address
         self.__port = port
         self.__query_protocol = query_protocol
         self.__connection = Connection(self.__address, self.__port, network_protocol)
         self.__server_entry_prefix = server_entry_prefix
+        self.__game_name = game_name
 
     def __parse_data(self, data: bytes) -> list:
         servers = []
@@ -52,7 +54,13 @@ class PrincipalServer:
     def get_servers(self, keywords: str = 'full empty', timeout: float = 1.0) -> List[Server]:
         self.__connection.set_timeout(timeout)
 
-        command = f'getservers {self.__query_protocol} {keywords}'
+        # Build command/packet string
+        command = 'getservers '
+        # Add game name if set
+        if self.__game_name != '':
+            command += f'{self.__game_name} '
+        # Add query protocol and keywords
+        command += f'{self.__query_protocol} {keywords}'
 
         self.__connection.write(b'\xff' * 4 + command.encode())
         result = self.__connection.read()
