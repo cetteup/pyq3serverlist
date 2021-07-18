@@ -25,10 +25,12 @@ class Server:
         return re.sub(r'\^(X.{6}|.)', '', value)
 
     def __parse_player(self, player_data: bytes) -> dict:
-        elements = player_data.split(b' ', 3)
-        frags = int(elements.pop(0))
-        ping = int(elements.pop(0))
-        colored_name = elements.pop().decode('latin1').replace('"', '')
+        elements = player_data.split(b'"')
+        data_elements = elements.pop(0).split(b' ')
+
+        frags = int(data_elements.pop(0))
+        ping = int(data_elements.pop(0))
+        colored_name = elements.pop(0).decode('latin1')
         name = self.__strip_colors(colored_name)
 
         return {
