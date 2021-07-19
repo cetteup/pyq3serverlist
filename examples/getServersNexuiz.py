@@ -1,11 +1,11 @@
 from pyq3serverlist import PrincipalServer
 from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
 
-principal = PrincipalServer('dpmaster.deathmask.net', 27950, 3, game_name='Nexuiz')
+principal = PrincipalServer('dpmaster.deathmask.net', 27950)
 
 servers = []
 try:
-    servers = principal.get_servers()
+    servers = principal.get_servers(3, 'Nexuiz')
     print(servers)
 except (PyQ3SLError, PyQ3SLTimeoutError) as e:
     print(e)

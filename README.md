@@ -21,10 +21,10 @@ The following example retrieves and prints a game server list for Call of Duty 4
 from pyq3serverlist import PrincipalServer
 from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
 
-principal = PrincipalServer('cod4master.activision.com', 20810, 6)
+principal = PrincipalServer('cod4master.activision.com', 20810)
 
 try:
-    servers = principal.get_servers()
+    servers = principal.get_servers(6)
     print(servers)
 except (PyQ3SLError, PyQ3SLTimeoutError) as e:
     print(e)
