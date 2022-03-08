@@ -41,27 +41,54 @@ class Server:
         }
 
     def __parse_data(self, data: bytes) -> dict:
-        lines = data.split(b'\n')
-
         """
-        Response should contain at least thee lines:
+        Response should consist of at least three lines:
         1: header indicating response type
         2: list of server variables, delimited by \
-        3+: lines containing player info (final player line being empty) 
+        3+: lines containing player info (final player line being empty)
         """
-        if len(lines) < 3:
-            raise PyQ3SLError('Server returned invalid data')
+        # Make sure header (first 19 bytes) indicates status response as type
+        header = data[:19]
+        if header != b'\xff' * 4 + b'statusResponse\n':
+            raise PyQ3SLError('Server returned invalid packet header')
 
-        # Make sure header indicates status response as type
-        header = lines.pop(0)
-        if header != b'\xff' * 4 + b'statusResponse':
-            raise PyQ3SLError('Server returned invalid data')
+        # Make sure body starts with "\" indicating the first variable and contains an even number of keys and values
+        body = data[19:]
+        if not body.startswith(b'\\') or body.count(b'\\') % 2 != 0:
+            raise PyQ3SLError('Server returned invalid packet body')
 
-        variables = lines.pop(0).split(b'\\')[1:]
+        # Parse variable keys and values
+        i = 0
+        keys = []
+        values = []
+        while body.startswith(b'\\'):
+            """
+            Skip the \\ indicating the start of the key/value and use
+            a) all bytes until the next separator (anything but the last value
+            or
+            b) all bytes until the next linebreak (last value)
+            as the key/value
+            """
+            if b'\\' in body[1:]:
+                element_end = body.index(b'\\', 1)
+            elif b'\n' in body[1:]:
+                element_end = body.index(b'\n', 1)
+            else:
+                # This should never happen
+                raise PyQ3SLError('Server returned invalid packet body')
 
-        keys = [v.decode('latin1') for (i, v) in enumerate(variables) if i % 2 == 0]
-        values = [self.__strip_colors(v.decode('latin1')) for (i, v) in enumerate(variables) if i % 2 == 1]
+            element = body[1:element_end]
+            if i % 2 == 0:
+                keys.append(element.decode('latin1'))
+            else:
+                values.append(self.__strip_colors(element.decode('latin1')))
 
+            # Cut used data from body
+            body = body[element_end:]
+            i += 1
+
+        # Split remaining body into player lines
+        lines = body.split(b'\n')
         player_lines = [line for line in lines if line != b'']
         players = []
         for player_line in player_lines:
