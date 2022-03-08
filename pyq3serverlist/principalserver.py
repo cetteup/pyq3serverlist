@@ -7,16 +7,33 @@ from .server import Server
 
 
 class PrincipalServer:
-    __address: str
-    __port: int
-    __connection: Connection
+    address: str
+    port: int
+    connection: Connection
 
     def __init__(self, address: str, port: int, network_protocol: int = socket.SOCK_DGRAM):
-        self.__address = address
-        self.__port = port
-        self.__connection = Connection(self.__address, self.__port, network_protocol)
+        self.address = address
+        self.port = port
+        self.connection = Connection(self.address, self.port, network_protocol)
 
-    def __parse_data(self, data: bytes, server_entry_prefix: bytes) -> list:
+    def get_servers(self, query_protocol: int, game_name: str = '', keywords: str = 'full empty',
+                    server_entry_prefix: bytes = b'', timeout: float = 1.0) -> List[Server]:
+        self.connection.set_timeout(timeout)
+
+        # Build command/packet string
+        command = 'getservers '
+        # Add game name if set
+        if game_name != '':
+            command += f'{game_name} '
+        # Add query protocol and keywords
+        command += f'{query_protocol} {keywords}'
+
+        self.connection.write(b'\xff' * 4 + command.encode())
+        result = self.connection.read()
+        return self.parse_response(result, server_entry_prefix)
+
+    @staticmethod
+    def parse_response(data: bytes, server_entry_prefix: bytes) -> list:
         servers = []
 
         if not data.startswith(b'\xff' * 4 + b'getserversResponse'):
@@ -43,19 +60,3 @@ class PrincipalServer:
                 servers.append(Server(ip, port))
 
         return servers
-
-    def get_servers(self, query_protocol: int, game_name: str = '', keywords: str = 'full empty',
-                    server_entry_prefix: bytes = b'', timeout: float = 1.0) -> List[Server]:
-        self.__connection.set_timeout(timeout)
-
-        # Build command/packet string
-        command = 'getservers '
-        # Add game name if set
-        if game_name != '':
-            command += f'{game_name} '
-        # Add query protocol and keywords
-        command += f'{query_protocol} {keywords}'
-
-        self.__connection.write(b'\xff' * 4 + command.encode())
-        result = self.__connection.read()
-        return self.__parse_data(result, server_entry_prefix)

@@ -5,95 +5,95 @@ from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
 
 
 class Connection:
-    __address: str
-    __port: int
-    __protocol: int
-    __socket: socket.socket
-    __timeout: float = 2.0
-    __is_connected: bool = False
-    __buffer: bytes = b''
+    address: str
+    port: int
+    protocol: int
+    socket: socket.socket
+    timeout: float = 2.0
+    is_connected: bool = False
+    buffer: bytes = b''
 
     def __init__(self, address: str, port: int, protocol: int = socket.SOCK_DGRAM):
-        self.__address = address
-        self.__port = port
-        self.__protocol = protocol
+        self.address = address
+        self.port = port
+        self.protocol = protocol
 
     def set_timeout(self, timeout: float) -> None:
-        self.__timeout = timeout
+        self.timeout = timeout
 
-    def __set_timeout_option(self, timeout: float) -> None:
-        if not isinstance(self.__socket, socket.socket):
+    def set_timeout_option(self, timeout: float) -> None:
+        if not isinstance(self.socket, socket.socket):
             raise PyQ3SLError('Socket handle is not valid')
 
-        self.__socket.settimeout(timeout)
+        self.socket.settimeout(timeout)
 
     def connect(self) -> None:
-        if self.__is_connected:
+        if self.is_connected:
             return
 
-        self.__socket = socket.socket(socket.AF_INET, self.__protocol)
+        self.socket = socket.socket(socket.AF_INET, self.protocol)
 
-        self.__set_timeout_option(self.__timeout)
+        self.set_timeout_option(self.timeout)
 
         try:
-            self.__socket.connect((self.__address, self.__port))
-            self.__is_connected = True
+            self.socket.connect((self.address, self.port))
+            self.is_connected = True
         except socket.timeout:
-            self.__is_connected = False
-            raise PyQ3SLTimeoutError(f'Connection attempt to {self.__address}:{self.__port} timed out')
+            self.is_connected = False
+            raise PyQ3SLTimeoutError(f'Connection attempt to {self.address}:{self.port} timed out')
         except socket.error as e:
-            self.__is_connected = False
-            raise PyQ3SLError(f'Failed to connect to {self.__address}:{self.__port} ({e})')
+            self.is_connected = False
+            raise PyQ3SLError(f'Failed to connect to {self.address}:{self.port} ({e})')
 
     def write(self, data: bytes) -> None:
-        if not self.__is_connected:
+        if not self.is_connected:
             self.connect()
 
         try:
-            self.__socket.sendall(data)
+            self.socket.sendall(data)
         except socket.error:
             raise PyQ3SLError('Failed to send data to server')
 
     def read(self) -> Optional[bytes]:
-        if not self.__is_connected:
+        if not self.is_connected:
             self.connect()
 
-        self.__buffer = b''
+        self.buffer = b''
         last_packet_length = 0
         receive_next = True
 
         while receive_next:
             try:
                 # Packet size differs from server to server => just read up to max possible UDP size
-                buffer = self.__socket.recv(65507)
+                buffer = self.socket.recv(65507)
             except socket.timeout:
                 # Raise exception if no data was retrieved at all, else break loop
-                if self.__buffer == b'':
+                if self.buffer == b'':
                     raise PyQ3SLTimeoutError('Timed out while receiving server data')
                 else:
                     break
             except socket.error:
                 raise PyQ3SLError('Failed to receive data from server')
 
-            self.__buffer += buffer
+            self.buffer += buffer
 
             buffer_end = buffer[-10:]
             # Continue to try reading from socket until packets get shorter or peer indicates EOF (in case of TCP)
-            receive_next = (self.__protocol == socket.SOCK_DGRAM and len(buffer) >= last_packet_length) or \
-                           (self.__protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end)
+            receive_next = (self.protocol == socket.SOCK_DGRAM and len(buffer) >= last_packet_length) or \
+                           (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end)
             last_packet_length = len(buffer)
 
-        return self.__buffer
+        return self.buffer
 
     def __del__(self):
         self.close()
 
     def close(self) -> bool:
-        if hasattr(self, '__socket') and isinstance(self.__socket, socket.socket):
-            if self.__is_connected:
-                self.__socket.shutdown(socket.SHUT_RDWR)
-            self.__socket.close()
-            self.__is_connected = False
+        if hasattr(self, 'socket') and isinstance(self.socket, socket.socket):
+            if self.is_connected:
+                self.socket.shutdown(socket.SHUT_RDWR)
+            self.socket.close()
+            self.is_connected = False
             return True
 
         return False

@@ -7,12 +7,12 @@ from .connection import Connection
 class Server:
     ip: str
     port: int
-    __connection: Connection
+    connection: Connection
 
     def __init__(self, ip: str, port: int):
         self.ip = ip
         self.port = port
-        self.__connection = Connection(ip, port)
+        self.connection = Connection(ip, port)
 
     def __repr__(self):
         return f'{self.ip}:{self.port}'
@@ -21,26 +21,16 @@ class Server:
         yield 'ip', self.ip
         yield 'port', self.port
 
-    def __strip_colors(self, value: str) -> str:
-        return re.sub(r'\^(X.{6}|.)', '', value)
+    def get_status(self, timeout: float = 1.0):
+        self.connection.set_timeout(timeout)
 
-    def __parse_player(self, player_data: bytes) -> dict:
-        elements = player_data.split(b'"')
-        data_elements = elements.pop(0).split(b' ')
+        command = 'getstatus'
 
-        frags = int(data_elements.pop(0))
-        ping = int(data_elements.pop(0))
-        colored_name = elements.pop(0).decode('latin1')
-        name = self.__strip_colors(colored_name)
+        self.connection.write(b'\xff' * 4 + command.encode() + b'\x00')
+        result = self.connection.read()
+        return self.parse_response(result)
 
-        return {
-            'frags': frags,
-            'ping': ping,
-            'name': name,
-            'colored_name': colored_name
-        }
-
-    def __parse_data(self, data: bytes) -> dict:
+    def parse_response(self, data: bytes) -> dict:
         """
         Response should consist of at least three lines:
         1: header indicating response type
@@ -81,7 +71,7 @@ class Server:
             if i % 2 == 0:
                 keys.append(element.decode('latin1'))
             else:
-                values.append(self.__strip_colors(element.decode('latin1')))
+                values.append(self.strip_colors(element.decode('latin1')))
 
             # Cut used data from body
             body = body[element_end:]
@@ -92,7 +82,7 @@ class Server:
         player_lines = [line for line in lines if line != b'']
         players = []
         for player_line in player_lines:
-            player = self.__parse_player(player_line)
+            player = self.parse_player(player_line)
             players.append(player)
 
         return {
@@ -102,11 +92,22 @@ class Server:
             'players': players
         }
 
-    def get_status(self, timeout: float = 1.0):
-        self.__connection.set_timeout(timeout)
+    @staticmethod
+    def strip_colors(value: str) -> str:
+        return re.sub(r'\^(X.{6}|.)', '', value)
 
-        command = 'getstatus'
+    def parse_player(self, player_data: bytes) -> dict:
+        elements = player_data.split(b'"')
+        data_elements = elements.pop(0).split(b' ')
 
-        self.__connection.write(b'\xff' * 4 + command.encode() + b'\x00')
-        result = self.__connection.read()
-        return self.__parse_data(result)
+        frags = int(data_elements.pop(0))
+        ping = int(data_elements.pop(0))
+        colored_name = elements.pop(0).decode('latin1')
+        name = self.strip_colors(colored_name)
+
+        return {
+            'frags': frags,
+            'ping': ping,
+            'name': name,
+            'colored_name': colored_name
+        }
