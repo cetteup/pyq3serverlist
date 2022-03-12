@@ -1,5 +1,4 @@
-from pyq3serverlist import PrincipalServer
-from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
+from pyq3serverlist import PrincipalServer, PyQ3SLError, PyQ3SLTimeoutError
 
 principal = PrincipalServer('dpmaster.deathmask.net', 27950)
 

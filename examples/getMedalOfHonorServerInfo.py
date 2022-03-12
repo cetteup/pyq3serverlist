@@ -1,7 +1,6 @@
 import json
 
-from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
-from pyq3serverlist.server import MedalOfHonorServer
+from pyq3serverlist import MedalOfHonorServer, PyQ3SLError, PyQ3SLTimeoutError
 
 server = MedalOfHonorServer('185.107.96.110', 12203)
 try:
