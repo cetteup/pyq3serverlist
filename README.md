@@ -44,4 +44,20 @@ except (PyQ3SLError, PyQ3SLTimeoutError) as e:
     print(e)
 ```
 
+Medal of Honor: Allied Assault, Medal of Honor: Allied Assault Spearhead, Medal of Honor: Allied Assault Breakthrough and Medal of Honor: Pacific Assault all use GameSpy for listing server and support the GameSpy1 query protocol. They do, however, also support a Quake3 protocol variant, which allows queries via the game port.
+
+You can query any known game server for the mentioned Medal of Honor games using `MedalOfHonorServer` instead of `Server`.
+
+```python
+from pyq3serverlist import MedalOfHonorServer
+from pyq3serverlist.exceptions import PyQ3SLError, PyQ3SLTimeoutError
+
+server = MedalOfHonorServer('217.247.241.12', 12203)
+try:
+    info = server.get_status()
+    print(info)
+except (PyQ3SLError, PyQ3SLTimeoutError) as e:
+    print(e)
+```
+
 You can find a few more examples in the `examples` folder.

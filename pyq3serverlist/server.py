@@ -1,7 +1,8 @@
 import re
+from typing import Tuple
 
-from .exceptions import PyQ3SLError
 from .connection import Connection
+from .exceptions import PyQ3SLError
 
 
 class Server:
@@ -24,9 +25,9 @@ class Server:
     def get_status(self, timeout: float = 1.0):
         self.connection.set_timeout(timeout)
 
-        command = 'getstatus'
+        packet = self.build_query_packet()
 
-        self.connection.write(b'\xff' * 4 + command.encode() + b'\x00')
+        self.connection.write(packet)
         result = self.connection.read()
         return self.parse_response(result)
 
@@ -37,14 +38,13 @@ class Server:
         2: list of server variables, delimited by \
         3+: lines containing player info (final player line being empty)
         """
-        # Make sure header (first 19 bytes) indicates status response as type
-        header = data[:19]
-        if header != b'\xff' * 4 + b'statusResponse\n':
+        header, body = self.split_packet(data)
+        # Make sure header indicates status response as type
+        if not self.is_valid_response_header(header):
             raise PyQ3SLError('Server returned invalid packet header')
 
         # Make sure body starts with "\" indicating the first variable and contains an even number of keys and values
-        body = data[19:]
-        if not body.startswith(b'\\') or body.count(b'\\') % 2 != 0:
+        if not self.is_valid_response_body(body):
             raise PyQ3SLError('Server returned invalid packet body')
 
         # Parse variable keys and values
@@ -93,21 +93,80 @@ class Server:
         }
 
     @staticmethod
+    def build_query_packet() -> bytes:
+        return b'\xff\xff\xff\xffgetstatus\x00'
+
+    @staticmethod
+    def split_packet(packet: bytes) -> Tuple[bytes, bytes]:
+        """
+        Split a query response packet into header and body
+        """
+        return packet[:19], packet[19:]
+
+    @staticmethod
+    def is_valid_response_header(header: bytes) -> bool:
+        return header == b'\xff\xff\xff\xffstatusResponse\n'
+
+    @staticmethod
+    def is_valid_response_body(body: bytes) -> bool:
+        return body.startswith(b'\\') and body.count(b'\\') % 2 == 0
+
+    @staticmethod
     def strip_colors(value: str) -> str:
         return re.sub(r'\^(X.{6}|.)', '', value)
 
-    def parse_player(self, player_data: bytes) -> dict:
+    @staticmethod
+    def parse_player(player_data: bytes) -> dict:
         elements = player_data.split(b'"')
         data_elements = elements.pop(0).split(b' ')
 
         frags = int(data_elements.pop(0))
         ping = int(data_elements.pop(0))
         colored_name = elements.pop(0).decode('latin1')
-        name = self.strip_colors(colored_name)
+        name = Server.strip_colors(colored_name)
 
         return {
             'frags': frags,
             'ping': ping,
             'name': name,
             'colored_name': colored_name
+        }
+
+
+class MedalOfHonorServer(Server):
+    """
+    Medal of Honor uses a custom Quake3 protocol variant with some key differences, making it incompatible with the
+    "vanilla" protocol. Since all the Medal of Honor games use GameSpy to list servers, Medal of Honor servers can only
+    be created directly.
+    """
+    def __init__(self, ip: str, port: int):
+        super().__init__(ip, port)
+
+    @staticmethod
+    def build_query_packet() -> bytes:
+        # Medal of Honor uses a slightly different query packet
+        return b'\xff\xff\xff\xff\x02getstatus xxx\x00'
+
+    @staticmethod
+    def split_packet(packet: bytes) -> Tuple[bytes, bytes]:
+        # Medal of Honor responses contain an extra byte (b'\x01') before "statusResponse", hence 20 instead of 19 bytes
+        return packet[:20], packet[20:]
+
+    @staticmethod
+    def is_valid_response_header(header: bytes) -> bool:
+        # Medal of Honor responses contain an extra byte (b'\x01')
+        return header == b'\xff\xff\xff\xff\x01statusResponse\n'
+
+    @staticmethod
+    def parse_player(player_data: bytes) -> dict:
+        elements = player_data.split(b'"')
+        data_elements = elements.pop(0).split(b' ')
+
+        # Medal of Honor only sends a player's ping and name (seems like colors are not supported)
+        ping = int(data_elements.pop(0))
+        name = elements.pop(0).decode('latin1')
+
+        return {
+            'ping': ping,
+            'name': name
         }
