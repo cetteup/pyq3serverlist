@@ -1,5 +1,5 @@
 import re
-from typing import Tuple
+from typing import Tuple, Any
 
 from .connection import Connection
 from .exceptions import PyQ3SLError
@@ -21,6 +21,11 @@ class Server:
     def __iter__(self):
         yield 'ip', self.ip
         yield 'port', self.port
+
+    def __eq__(self, other: Any):
+        return isinstance(other, type(self)) and \
+            other.ip == self.ip and \
+            other.port == self.port
 
     def get_status(self, timeout: float = 1.0):
         self.connection.set_timeout(timeout)
