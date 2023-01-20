@@ -1,5 +1,10 @@
 # pyq3serverlist
 
+[![ci](https://img.shields.io/github/actions/workflow/status/cetteup/pyq3serverlist/ci.yml?label=ci)](https://github.com/cetteup/pyq3serverlist/actions?query=workflow%3Aci)
+[![License](https://img.shields.io/github/license/cetteup/pyq3serverlist)](/LICENSE)
+[![Package](https://img.shields.io/pypi/v/pyq3serverlist)](https://pypi.org/project/pyq3serverlist/)
+[![Last commit](https://img.shields.io/github/last-commit/cetteup/pyq3serverlist)](https://github.com/cetteup/pyq3serverlist/commits/main)
+
 Simple Python 🐍 library for querying Quake 3 based principal servers and their game servers. Very much based on [jacklul's PHP implementation](https://github.com/jacklul/q3serverlist).
 
 ## Features
