@@ -12,6 +12,7 @@ class ServerTest(unittest.TestCase):
         class ParseResponseTestCase:
             name: str
             data: bytes
+            strip_colors: bool = True
             expected: Optional[dict] = None
             wantErrContains: Optional[str] = None
 
@@ -224,6 +225,55 @@ class ServerTest(unittest.TestCase):
                 }
             ),
             ParseResponseTestCase(
+                name='does not strip colors if color stripping is disabled',
+                data=b'\xff\xff\xff\xffstatusResponse\n'
+                     b'\\sv_hostname\\! ^2Tigers DM17^7 baseq3'
+                     b'\\version\\Q3 1.32e linux-x86_64 Sep 14 2018\\g_blueTeam\\^4BLUE\\g_redTeam\\^1RED'
+                     b'\\gamename\\excessiveplus\\roundlimit\\0\\sv_punkbuster\\0\n'
+                     b'0 64 "^1Fo"\n'
+                     b'0 12 "MonyMakr"\n'
+                     b'0 28 "Wit^1Dvil"\n'
+                     b'0 17 "^2Kaza"\n'
+                     b'6 0 "Uriel"\n'
+                     b'0 75 "^5Doo Doo"\n'
+                     b'0 56 "^3styv"\n'
+                     b'0 85 "YoPaPa"\n'
+                     b'14 0 "Sorlag"\n'
+                     b'0 11 "Trodat"\n'
+                     b'14 11 "SiLNT"\n'
+                     b'0 75 "crazy"\n'
+                     b'0 29 "dan"\n'
+                     b'0 107 "Jos"\n',
+                strip_colors=False,
+                expected={
+                    'ip': '127.0.0.1',
+                    'port': 27960,
+                    'sv_hostname': '! ^2Tigers DM17^7 baseq3',
+                    'version': 'Q3 1.32e linux-x86_64 Sep 14 2018',
+                    'g_blueTeam': '^4BLUE',
+                    'g_redTeam': '^1RED',
+                    'gamename': 'excessiveplus',
+                    'roundlimit': '0',
+                    'sv_punkbuster': '0',
+                    'players': [
+                        {'frags': 0, 'ping': 64, 'name': '^1Fo'},
+                        {'frags': 0, 'ping': 12, 'name': 'MonyMakr'},
+                        {'frags': 0, 'ping': 28, 'name': 'Wit^1Dvil'},
+                        {'frags': 0, 'ping': 17, 'name': '^2Kaza'},
+                        {'frags': 6, 'ping': 0, 'name': 'Uriel'},
+                        {'frags': 0, 'ping': 75, 'name': '^5Doo Doo'},
+                        {'frags': 0, 'ping': 56, 'name': '^3styv'},
+                        {'frags': 0, 'ping': 85, 'name': 'YoPaPa'},
+                        {'frags': 14, 'ping': 0, 'name': 'Sorlag'},
+                        {'frags': 0, 'ping': 11, 'name': 'Trodat'},
+                        {'frags': 14, 'ping': 11, 'name': 'SiLNT'},
+                        {'frags': 0, 'ping': 75, 'name': 'crazy'},
+                        {'frags': 0, 'ping': 29, 'name': 'dan'},
+                        {'frags': 0, 'ping': 107, 'name': 'Jos'}
+                    ]
+                }
+            ),
+            ParseResponseTestCase(
                 name='errors for incomplete header',
                 data=b'\xff\xff\xff\xff',
                 wantErrContains='Server returned invalid packet header'
@@ -261,11 +311,12 @@ class ServerTest(unittest.TestCase):
                     PyQ3SLError,
                     t.wantErrContains,
                     server.parse_response,
-                    buffer
+                    buffer,
+                    t.strip_colors
                 )
             else:
                 # WHEN
-                actual = server.parse_response(buffer)
+                actual = server.parse_response(buffer, t.strip_colors)
 
                 # THEN
                 self.assertDictEqual(t.expected, actual)
@@ -277,6 +328,7 @@ class MedalOfHonorServerTest(unittest.TestCase):
         class ParseResponseTestCase:
             name: str
             data: bytes
+            strip_colors: bool = True
             expected: Optional[dict] = None
             wantErrContains: Optional[str] = None
 
@@ -461,11 +513,12 @@ class MedalOfHonorServerTest(unittest.TestCase):
                     PyQ3SLError,
                     t.wantErrContains,
                     server.parse_response,
-                    buffer
+                    buffer,
+                    t.strip_colors
                 )
             else:
                 # WHEN
-                actual = server.parse_response(buffer)
+                actual = server.parse_response(buffer, t.strip_colors)
 
                 # THEN
                 self.assertDictEqual(t.expected, actual)

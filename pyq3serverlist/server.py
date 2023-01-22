@@ -27,16 +27,16 @@ class Server:
             other.ip == self.ip and \
             other.port == self.port
 
-    def get_status(self, timeout: float = 1.0):
+    def get_status(self, strip_colors: bool = True, timeout: float = 1.0):
         self.connection.set_timeout(timeout)
 
         packet = self.build_query_packet()
 
         self.connection.write(packet)
         result = self.connection.read()
-        return self.parse_response(result)
+        return self.parse_response(result, strip_colors)
 
-    def parse_response(self, buffer: Buffer) -> dict:
+    def parse_response(self, buffer: Buffer, strip_colors: bool) -> dict:
         """
         Response should consist of at least three lines:
         1: header indicating response type
@@ -64,7 +64,7 @@ class Server:
             as the key/value
             """
             buffer.skip(1)
-            element = buffer.read_string([b'\\', b'\n'])
+            element = buffer.read_string([b'\\', b'\n'], strip_colors=strip_colors)
             if i % 2 == 0:
                 keys.append(element)
             else:
@@ -75,7 +75,7 @@ class Server:
         players = []
         # A player with 0 frags, 0 ping and an empty name would take up 7 bytes plus the line break
         while buffer.peek(1) == b'\n' and buffer.has(8):
-            player = self.parse_player(buffer)
+            player = self.parse_player(buffer, strip_colors)
             players.append(player)
 
         return {
@@ -98,11 +98,11 @@ class Server:
         return buffer.peek(1) == b'\\' and buffer.get_buffer().count(b'\\') % 2 == 0
 
     @staticmethod
-    def parse_player(buffer: Buffer) -> dict:
-        frags = int(buffer.read_string(b' ', consume_sep=True))
-        ping = int(buffer.read_string(b' ', consume_sep=True))
+    def parse_player(buffer: Buffer, strip_colors: bool) -> dict:
+        frags = int(buffer.read_string(b' ', consume_sep=True, strip_colors=strip_colors))
+        ping = int(buffer.read_string(b' ', consume_sep=True, strip_colors=strip_colors))
         buffer.skip(1)
-        name = buffer.read_string(b'"', consume_sep=True)
+        name = buffer.read_string(b'"', consume_sep=True, strip_colors=strip_colors)
 
         return {
             'frags': frags,
@@ -131,11 +131,11 @@ class MedalOfHonorServer(Server):
         return buffer.has(20) and buffer.read(20) == b'\xff\xff\xff\xff\x01statusResponse\n'
 
     @staticmethod
-    def parse_player(buffer: Buffer) -> dict:
+    def parse_player(buffer: Buffer, strip_colors: bool) -> dict:
         # Medal of Honor only sends a player's ping and name (seems like colors are not supported)
-        ping = int(buffer.read_string(b' ', consume_sep=True))
+        ping = int(buffer.read_string(b' ', consume_sep=True, strip_colors=strip_colors))
         buffer.skip(1)
-        name = buffer.read_string(b'"', consume_sep=True)
+        name = buffer.read_string(b'"', consume_sep=True, strip_colors=strip_colors)
 
         return {
             'ping': ping,
