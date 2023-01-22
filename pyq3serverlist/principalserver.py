@@ -12,15 +12,24 @@ class PrincipalServer:
     port: int
     connection: Connection
 
-    def __init__(self, address: str, port: int, network_protocol: int = socket.SOCK_DGRAM):
+    def __init__(
+            self,
+            address: str,
+            port: int,
+            network_protocol: socket.SocketKind = socket.SOCK_DGRAM,
+            timeout: float = 1.0
+    ):
         self.address = address
         self.port = port
-        self.connection = Connection(self.address, self.port, network_protocol)
+        self.connection = Connection(self.address, self.port, network_protocol, timeout)
 
-    def get_servers(self, query_protocol: int, game_name: str = '', keywords: str = 'full empty',
-                    server_entry_prefix: Optional[bytes] = None, timeout: float = 1.0) -> List[Server]:
-        self.connection.set_timeout(timeout)
-
+    def get_servers(
+            self,
+            query_protocol: int,
+            game_name: str = '',
+            keywords: str = 'full empty',
+            server_entry_prefix: Optional[bytes] = None
+    ) -> List[Server]:
         buffer = Buffer(b'\xff' * 4)
         buffer.write_string('getservers ')
         # Add game name if set

@@ -7,32 +7,25 @@ from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
 class Connection:
     address: str
     port: int
-    protocol: int
+    protocol: socket.SocketKind
     sock: socket.socket
-    timeout: float = 2.0
-    is_connected: bool = False
+    timeout: float
+    is_connected: bool
 
-    def __init__(self, address: str, port: int, protocol: int = socket.SOCK_DGRAM):
+    def __init__(self, address: str, port: int, protocol: socket.SocketKind, timeout: float):
         self.address = address
         self.port = port
         self.protocol = protocol
-
-    def set_timeout(self, timeout: float) -> None:
         self.timeout = timeout
 
-    def set_timeout_option(self, timeout: float) -> None:
-        if not isinstance(self.sock, socket.socket):
-            raise PyQ3SLError('Socket handle is not valid')
-
-        self.sock.settimeout(timeout)
+        self.is_connected = False
 
     def connect(self) -> None:
         if self.is_connected:
             return
 
         self.sock = socket.socket(socket.AF_INET, self.protocol)
-
-        self.set_timeout_option(self.timeout)
+        self.sock.settimeout(self.timeout)
 
         try:
             self.sock.connect((self.address, self.port))

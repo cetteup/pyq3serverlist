@@ -1,3 +1,4 @@
+import socket
 from typing import Any
 
 from .buffer import Buffer
@@ -8,12 +9,11 @@ from .exceptions import PyQ3SLError
 class Server:
     ip: str
     port: int
-    connection: Connection
 
     def __init__(self, ip: str, port: int):
         self.ip = ip
         self.port = port
-        self.connection = Connection(ip, port)
+
 
     def __repr__(self):
         return f'{self.ip}:{self.port}'
@@ -28,12 +28,12 @@ class Server:
             other.port == self.port
 
     def get_status(self, strip_colors: bool = True, timeout: float = 1.0):
-        self.connection.set_timeout(timeout)
+        connection = Connection(self.ip, self.port, socket.SOCK_DGRAM, timeout)
 
         packet = self.build_query_packet()
 
-        self.connection.write(packet)
-        result = self.connection.read()
+        connection.write(packet)
+        result = connection.read()
         return self.parse_response(result, strip_colors)
 
     def parse_response(self, buffer: Buffer, strip_colors: bool) -> dict:
