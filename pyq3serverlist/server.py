@@ -1,6 +1,6 @@
-import re
-from typing import Tuple, Any
+from typing import Any
 
+from .buffer import Buffer
 from .connection import Connection
 from .exceptions import PyQ3SLError
 
@@ -36,27 +36,26 @@ class Server:
         result = self.connection.read()
         return self.parse_response(result)
 
-    def parse_response(self, data: bytes) -> dict:
+    def parse_response(self, buffer: Buffer) -> dict:
         """
         Response should consist of at least three lines:
         1: header indicating response type
         2: list of server variables, delimited by \
         3+: lines containing player info (final player line being empty)
         """
-        header, body = self.split_packet(data)
         # Make sure header indicates status response as type
-        if not self.is_valid_response_header(header):
+        if not self.has_valid_response_header(buffer):
             raise PyQ3SLError('Server returned invalid packet header')
 
         # Make sure body starts with "\" indicating the first variable and contains an even number of keys and values
-        if not self.is_valid_response_body(body):
+        if not self.has_valid_response_body(buffer):
             raise PyQ3SLError('Server returned invalid packet body')
 
         # Parse variable keys and values
         i = 0
         keys = []
         values = []
-        while body.startswith(b'\\'):
+        while buffer.peek(1) == b'\\':
             """
             Skip the \\ indicating the start of the key/value and use
             a) all bytes until the next separator (anything but the last value
@@ -64,30 +63,19 @@ class Server:
             b) all bytes until the next linebreak (last value)
             as the key/value
             """
-            if b'\\' in body[1:]:
-                element_end = body.index(b'\\', 1)
-            elif b'\n' in body[1:]:
-                element_end = body.index(b'\n', 1)
-            else:
-                # This should never happen
-                raise PyQ3SLError('Server returned invalid packet body')
-
-            element = body[1:element_end]
+            buffer.skip(1)
+            element = buffer.read_string([b'\\', b'\n'])
             if i % 2 == 0:
-                keys.append(element.decode('latin1'))
+                keys.append(element)
             else:
-                values.append(self.strip_colors(element.decode('latin1')))
+                values.append(element)
 
-            # Cut used data from body
-            body = body[element_end:]
             i += 1
 
-        # Split remaining body into player lines
-        lines = body.split(b'\n')
-        player_lines = [line for line in lines if line != b'']
         players = []
-        for player_line in player_lines:
-            player = self.parse_player(player_line)
+        # A player with 0 frags, 0 ping and an empty name would take up 7 bytes plus the line break
+        while buffer.peek(1) == b'\n' and buffer.has(8):
+            player = self.parse_player(buffer)
             players.append(player)
 
         return {
@@ -102,39 +90,24 @@ class Server:
         return b'\xff\xff\xff\xffgetstatus\x00'
 
     @staticmethod
-    def split_packet(packet: bytes) -> Tuple[bytes, bytes]:
-        """
-        Split a query response packet into header and body
-        """
-        return packet[:19], packet[19:]
+    def has_valid_response_header(buffer: Buffer) -> bool:
+        return buffer.has(19) and buffer.read(19) == b'\xff\xff\xff\xffstatusResponse\n'
 
     @staticmethod
-    def is_valid_response_header(header: bytes) -> bool:
-        return header == b'\xff\xff\xff\xffstatusResponse\n'
+    def has_valid_response_body(buffer: Buffer) -> bool:
+        return buffer.peek(1) == b'\\' and buffer.get_buffer().count(b'\\') % 2 == 0
 
     @staticmethod
-    def is_valid_response_body(body: bytes) -> bool:
-        return body.startswith(b'\\') and body.count(b'\\') % 2 == 0
-
-    @staticmethod
-    def strip_colors(value: str) -> str:
-        return re.sub(r'\^(X.{6}|.)', '', value)
-
-    @staticmethod
-    def parse_player(player_data: bytes) -> dict:
-        elements = player_data.split(b'"')
-        data_elements = elements.pop(0).split(b' ')
-
-        frags = int(data_elements.pop(0))
-        ping = int(data_elements.pop(0))
-        colored_name = elements.pop(0).decode('latin1')
-        name = Server.strip_colors(colored_name)
+    def parse_player(buffer: Buffer) -> dict:
+        frags = int(buffer.read_string(b' ', consume_sep=True))
+        ping = int(buffer.read_string(b' ', consume_sep=True))
+        buffer.skip(1)
+        name = buffer.read_string(b'"', consume_sep=True)
 
         return {
             'frags': frags,
             'ping': ping,
             'name': name,
-            'colored_name': colored_name
         }
 
 
@@ -153,25 +126,18 @@ class MedalOfHonorServer(Server):
         return b'\xff\xff\xff\xff\x02getstatus xxx\x00'
 
     @staticmethod
-    def split_packet(packet: bytes) -> Tuple[bytes, bytes]:
-        # Medal of Honor responses contain an extra byte (b'\x01') before "statusResponse", hence 20 instead of 19 bytes
-        return packet[:20], packet[20:]
-
-    @staticmethod
-    def is_valid_response_header(header: bytes) -> bool:
+    def has_valid_response_header(buffer: Buffer) -> bool:
         # Medal of Honor responses contain an extra byte (b'\x01')
-        return header == b'\xff\xff\xff\xff\x01statusResponse\n'
+        return buffer.has(20) and buffer.read(20) == b'\xff\xff\xff\xff\x01statusResponse\n'
 
     @staticmethod
-    def parse_player(player_data: bytes) -> dict:
-        elements = player_data.split(b'"')
-        data_elements = elements.pop(0).split(b' ')
-
+    def parse_player(buffer: Buffer) -> dict:
         # Medal of Honor only sends a player's ping and name (seems like colors are not supported)
-        ping = int(data_elements.pop(0))
-        name = elements.pop(0).decode('latin1')
+        ping = int(buffer.read_string(b' ', consume_sep=True))
+        buffer.skip(1)
+        name = buffer.read_string(b'"', consume_sep=True)
 
         return {
             'ping': ping,
-            'name': name
+            'name': name,
         }

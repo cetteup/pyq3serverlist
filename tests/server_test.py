@@ -2,7 +2,8 @@ import unittest
 from dataclasses import dataclass
 from typing import List, Optional
 
-from pyq3serverlist import PyQ3SLError, Server
+from pyq3serverlist import PyQ3SLError, Server, MedalOfHonorServer
+from pyq3serverlist.buffer import Buffer
 
 
 class ServerTest(unittest.TestCase):
@@ -115,20 +116,20 @@ class ServerTest(unittest.TestCase):
                     'Score_Blue': '1',
                     'Score_Red': '2',
                     'players': [
-                        {'frags': 0, 'ping': 64, 'name': 'Fo', 'colored_name': '^1Fo'},
-                        {'frags': 0, 'ping': 12, 'name': 'MonyMakr', 'colored_name': 'MonyMakr'},
-                        {'frags': 0, 'ping': 28, 'name': 'WitDvil', 'colored_name': 'Wit^1Dvil'},
-                        {'frags': 0, 'ping': 17, 'name': 'Kaza', 'colored_name': '^2Kaza'},
-                        {'frags': 6, 'ping': 0, 'name': 'Uriel', 'colored_name': 'Uriel'},
-                        {'frags': 0, 'ping': 75, 'name': 'Doo Doo', 'colored_name': '^5Doo Doo'},
-                        {'frags': 0, 'ping': 56, 'name': 'styv', 'colored_name': '^3styv'},
-                        {'frags': 0, 'ping': 85, 'name': 'YoPaPa', 'colored_name': 'YoPaPa'},
-                        {'frags': 14, 'ping': 0, 'name': 'Sorlag', 'colored_name': 'Sorlag'},
-                        {'frags': 0, 'ping': 11, 'name': 'Trodat', 'colored_name': 'Trodat'},
-                        {'frags': 14, 'ping': 11, 'name': 'SiLNT', 'colored_name': 'SiLNT'},
-                        {'frags': 0, 'ping': 75, 'name': 'crazy', 'colored_name': 'crazy'},
-                        {'frags': 0, 'ping': 29, 'name': 'dan', 'colored_name': 'dan'},
-                        {'frags': 0, 'ping': 107, 'name': 'Jos', 'colored_name': 'Jos'}
+                        {'frags': 0, 'ping': 64, 'name': 'Fo'},
+                        {'frags': 0, 'ping': 12, 'name': 'MonyMakr'},
+                        {'frags': 0, 'ping': 28, 'name': 'WitDvil'},
+                        {'frags': 0, 'ping': 17, 'name': 'Kaza'},
+                        {'frags': 6, 'ping': 0, 'name': 'Uriel'},
+                        {'frags': 0, 'ping': 75, 'name': 'Doo Doo'},
+                        {'frags': 0, 'ping': 56, 'name': 'styv'},
+                        {'frags': 0, 'ping': 85, 'name': 'YoPaPa'},
+                        {'frags': 14, 'ping': 0, 'name': 'Sorlag'},
+                        {'frags': 0, 'ping': 11, 'name': 'Trodat'},
+                        {'frags': 14, 'ping': 11, 'name': 'SiLNT'},
+                        {'frags': 0, 'ping': 75, 'name': 'crazy'},
+                        {'frags': 0, 'ping': 29, 'name': 'dan'},
+                        {'frags': 0, 'ping': 107, 'name': 'Jos'}
                     ]
                 }
             ),
@@ -207,18 +208,18 @@ class ServerTest(unittest.TestCase):
                     'g_needpass': '0',
                     'mode_current': 'PUBCTF',
                     'players': [
-                        {'frags': 10, 'ping': 33, 'name': '0UnnamedPlayer', 'colored_name': '^z0^7UnnamedPlayer'},
-                        {'frags': 18, 'ping': 31, 'name': '1Andreas', 'colored_name': '^z1^7^oAndreas'},
-                        {'frags': 18, 'ping': 85, 'name': '2UnnamedPlayer', 'colored_name': '^z2^7UnnamedPlayer'},
-                        {'frags': 14, 'ping': 61, 'name': '3x736C', 'colored_name': '^z3^7^ox^y736C'},
-                        {'frags': 2, 'ping': 285, 'name': '4UnnamedPlayer', 'colored_name': '^z4^7UnnamedPlayer'},
-                        {'frags': 0, 'ping': 55, 'name': '5UnnamedPlayer', 'colored_name': '^z5^7UnnamedPlayer'},
-                        {'frags': 16, 'ping': 31, 'name': '6UnnamedPlayer', 'colored_name': '^z6^7UnnamedPlayer'},
-                        {'frags': 3, 'ping': 41, 'name': '7UnnamedPlayer', 'colored_name': '^z7^7UnnamedPlayer'},
-                        {'frags': 28, 'ping': 19, 'name': '10tom', 'colored_name': '^z10^7tom'},
-                        {'frags': 0, 'ping': 37, 'name': '11UnnamedPlayer', 'colored_name': '^z11^7UnnamedPlayer'},
-                        {'frags': 9, 'ping': 39, 'name': '13UnnamedPlayer', 'colored_name': '^z13^7UnnamedPlayer'},
-                        {'frags': 7, 'ping': 210, 'name': '14chilote', 'colored_name': '^z14^7chilote'}
+                        {'frags': 10, 'ping': 33, 'name': '0UnnamedPlayer'},
+                        {'frags': 18, 'ping': 31, 'name': '1Andreas'},
+                        {'frags': 18, 'ping': 85, 'name': '2UnnamedPlayer'},
+                        {'frags': 14, 'ping': 61, 'name': '3x736C'},
+                        {'frags': 2, 'ping': 285, 'name': '4UnnamedPlayer'},
+                        {'frags': 0, 'ping': 55, 'name': '5UnnamedPlayer'},
+                        {'frags': 16, 'ping': 31, 'name': '6UnnamedPlayer'},
+                        {'frags': 3, 'ping': 41, 'name': '7UnnamedPlayer'},
+                        {'frags': 28, 'ping': 19, 'name': '10tom'},
+                        {'frags': 0, 'ping': 37, 'name': '11UnnamedPlayer'},
+                        {'frags': 9, 'ping': 39, 'name': '13UnnamedPlayer'},
+                        {'frags': 7, 'ping': 210, 'name': '14chilote'}
                     ]
                 }
             ),
@@ -245,13 +246,14 @@ class ServerTest(unittest.TestCase):
             ParseResponseTestCase(
                 name='errors for body not ending with delimiter',
                 data=b'\xff\xff\xff\xffstatusResponse\n\\key\\value',
-                wantErrContains='Server returned invalid packet body'
+                wantErrContains='Expected string delimiters were not found'
             )
         ]
 
         for t in tests:
             # GIVEN
             server = Server('127.0.0.1', 27960)
+            buffer = Buffer(t.data)
 
             if t.wantErrContains is not None:
                 # WHEN/THEN
@@ -259,11 +261,211 @@ class ServerTest(unittest.TestCase):
                     PyQ3SLError,
                     t.wantErrContains,
                     server.parse_response,
-                    t.data
+                    buffer
                 )
             else:
                 # WHEN
-                actual = server.parse_response(t.data)
+                actual = server.parse_response(buffer)
+
+                # THEN
+                self.assertDictEqual(t.expected, actual)
+
+
+class MedalOfHonorServerTest(unittest.TestCase):
+    def test_parse_response(self):
+        @dataclass
+        class ParseResponseTestCase:
+            name: str
+            data: bytes
+            expected: Optional[dict] = None
+            wantErrContains: Optional[str] = None
+
+        tests: List[ParseResponseTestCase] = [
+            ParseResponseTestCase(
+                name='parses response packet without players',
+                data=b'\xff\xff\xff\xff\x01statusResponse\n\\challenge\\xxx\\cheats\\0\\sv_maxrate\\10000'
+                     b'\\sv_maxclients\\64\\deathmatch\\1'
+                     b'\\version\\Medal of Honor Allied Assault 1.11 linux-i386 Jul 22 2004\\skill\\0\\dmflags\\0'
+                     b'\\fraglimit\\0\\timelimit\\10\\protocol\\8\\mapname\\dm/mohdm3'
+                     b'\\sv_hostname\\Florida - Rent Me webehostin.com\\sv_minPing\\0\\sv_maxPing\\1000'
+                     b'\\sv_floodProtect\\1'
+                     b'\\sv_maplist\\obj/obj_team2 dm/mohdm7 dm/mohdm1 dm/mohdm3 dm/mohdm2 dm/mohdm6\\g_gametype\\3'
+                     b'\\g_gametypestring\\Round-Based-Match\\sv_fps\\20\\sv_allowDownload\\0\\g_forcerespawn\\30'
+                     b'\\sv_info\\MoH:AA 1.12 Reborn Patch RC3.5 (NIX)\\roundlimit\\0\\g_allowjointime\\30'
+                     b'\\nomonsters\\0\\sv_friction\\4\\sv_stopspeed\\100\\sv_waterfriction\\1\\sv_waterspeed\\400'
+                     b'\\sv_cinematic\\0\\g_forceready\\1\\g_maxintermission\\15\\g_obj_alliedtext1\\Remagen'
+                     b'\\g_scoreboardpic\\mohdm3\n',
+                expected={
+                    'ip': '127.0.0.1',
+                    'port': 12203,
+                    'challenge': 'xxx',
+                    'cheats': '0',
+                    'sv_maxrate': '10000',
+                    'sv_maxclients': '64',
+                    'deathmatch': '1',
+                    'version': 'Medal of Honor Allied Assault 1.11 linux-i386 Jul 22 2004',
+                    'skill': '0',
+                    'dmflags': '0',
+                    'fraglimit': '0',
+                    'timelimit': '10',
+                    'protocol': '8',
+                    'mapname': 'dm/mohdm3',
+                    'sv_hostname': 'Florida - Rent Me webehostin.com',
+                    'sv_minPing': '0',
+                    'sv_maxPing': '1000',
+                    'sv_floodProtect': '1',
+                    'sv_maplist': 'obj/obj_team2 dm/mohdm7 dm/mohdm1 dm/mohdm3 dm/mohdm2 dm/mohdm6',
+                    'g_gametype': '3',
+                    'g_gametypestring': 'Round-Based-Match',
+                    'sv_fps': '20',
+                    'sv_allowDownload': '0',
+                    'g_forcerespawn': '30',
+                    'sv_info': 'MoH:AA 1.12 Reborn Patch RC3.5 (NIX)',
+                    'roundlimit': '0',
+                    'g_allowjointime': '30',
+                    'nomonsters': '0',
+                    'sv_friction': '4',
+                    'sv_stopspeed': '100',
+                    'sv_waterfriction': '1',
+                    'sv_waterspeed': '400',
+                    'sv_cinematic': '0',
+                    'g_forceready': '1',
+                    'g_maxintermission': '15',
+                    'g_obj_alliedtext1': 'Remagen',
+                    'g_scoreboardpic': 'mohdm3',
+                    'players': []
+                }
+            ),
+            ParseResponseTestCase(
+                name='parses response packet with players',
+                data=b'\xff\xff\xff\xff\x01statusResponse\n\\challenge\\xxx\\cheats\\0\\deathmatch\\1'
+                     b'\\version\\Medal of Honor Allied Assault 1.11 linux-i386 Jul 22 2004\\skill\\0\\dmflags\\0'
+                     b'\\fraglimit\\0\\timelimit\\20\\protocol\\8\\mapname\\dm/mohdm6'
+                     b'\\sv_hostname\\#| FORTE |# FFA Public [Real IP : 185.107.96.110]\\sv_maxclients\\32'
+                     b'\\sv_maxRate\\25000\\sv_minPing\\0\\sv_maxPing\\250\\sv_floodProtect\\1\\sv_maplist\\dm/mohdm6'
+                     b'\\g_gametype\\1\\g_gametypestring\\Free-For-All\\sv_fps\\20\\sv_allowDownload\\0'
+                     b'\\g_forcerespawn\\1\\g_allowjointime\\2\\sv_info\\MoH:AA 1.12 Reborn Patch RC3.5 (NIX)'
+                     b'\\roundlimit\\0\\nomonsters\\0\\sv_friction\\4\\sv_stopspeed\\100\\sv_waterfriction\\1'
+                     b'\\sv_waterspeed\\400\\sv_cinematic\\0\\g_forceready\\1\\g_maxintermission\\15'
+                     b'\\g_obj_alliedtext1\\Stalingrad Default FFA\\g_scoreboardpic\\mohdm6\n'
+                     b'58 "UnnamedSoldier"\n'
+                     b'101 "mohaamed"\n'
+                     b'101 "badabing"\n'
+                     b'106 "rambo"\n'
+                     b'106 "mike"\n'
+                     b'111 "terminator"\n'
+                     b'98 "yosef 225"\n'
+                     b'50 "Savageman"\n'
+                     b'62 "Nzdeh"\n'
+                     b'62 "sargis"\n'
+                     b'26 "De$ty"\n'
+                     b'80 "ana mona .. y mtnakin"\n'
+                     b'100 "LIDER"\n'
+                     b'108 "hesham"\n'
+                     b'23 "Redneck"\n'
+                     b'250 "M@TT!@$"\n'
+                     b'64 "Ayman"\n'
+                     b'21 "$paz3r^"\n'
+                     b'108 "abo 3mro"\n'
+                     b'93 "hetlar"\n'
+                     b'103 "MOHAA=[_ViP-edition_]=DooM"\n'
+                     b'221 "Baker"\n'
+                     b'109 "oner"\n'
+                     b'101 "={DM}=CLAN.PLAYER.NEW9099"\n',
+                expected={
+                    'ip': '127.0.0.1',
+                    'port': 12203,
+                    'challenge': 'xxx',
+                    'cheats': '0',
+                    'deathmatch': '1',
+                    'version': 'Medal of Honor Allied Assault 1.11 linux-i386 Jul 22 2004',
+                    'skill': '0',
+                    'dmflags': '0',
+                    'fraglimit': '0',
+                    'timelimit': '20',
+                    'protocol': '8',
+                    'mapname': 'dm/mohdm6',
+                    'sv_hostname': '#| FORTE |# FFA Public [Real IP : 185.107.96.110]',
+                    'sv_maxclients': '32',
+                    'sv_maxRate': '25000',
+                    'sv_minPing': '0',
+                    'sv_maxPing': '250',
+                    'sv_floodProtect': '1',
+                    'sv_maplist': 'dm/mohdm6',
+                    'g_gametype': '1',
+                    'g_gametypestring': 'Free-For-All',
+                    'sv_fps': '20',
+                    'sv_allowDownload': '0',
+                    'g_forcerespawn': '1',
+                    'g_allowjointime': '2',
+                    'sv_info': 'MoH:AA 1.12 Reborn Patch RC3.5 (NIX)',
+                    'roundlimit': '0',
+                    'nomonsters': '0',
+                    'sv_friction': '4',
+                    'sv_stopspeed': '100',
+                    'sv_waterfriction': '1',
+                    'sv_waterspeed': '400',
+                    'sv_cinematic': '0',
+                    'g_forceready': '1',
+                    'g_maxintermission': '15',
+                    'g_obj_alliedtext1': 'Stalingrad Default FFA',
+                    'g_scoreboardpic': 'mohdm6',
+                    'players': [
+                        {'ping': 58, 'name': 'UnnamedSoldier'},
+                        {'ping': 101, 'name': 'mohaamed'},
+                        {'ping': 101, 'name': 'badabing'},
+                        {'ping': 106, 'name': 'rambo'},
+                        {'ping': 106, 'name': 'mike'},
+                        {'ping': 111, 'name': 'terminator'},
+                        {'ping': 98, 'name': 'yosef 225'},
+                        {'ping': 50, 'name': 'Savageman'},
+                        {'ping': 62, 'name': 'Nzdeh'},
+                        {'ping': 62, 'name': 'sargis'},
+                        {'ping': 26, 'name': 'De$ty'},
+                        {'ping': 80, 'name': 'ana mona .. y mtnakin'},
+                        {'ping': 100, 'name': 'LIDER'},
+                        {'ping': 108, 'name': 'hesham'},
+                        {'ping': 23, 'name': 'Redneck'},
+                        {'ping': 250, 'name': 'M@TT!@$'},
+                        {'ping': 64, 'name': 'Ayman'},
+                        {'ping': 21, 'name': '$paz3r^'},
+                        {'ping': 108, 'name': 'abo 3mro'},
+                        {'ping': 93, 'name': 'hetlar'},
+                        {'ping': 103, 'name': 'MOHAA=[_ViP-edition_]=DooM'},
+                        {'ping': 221, 'name': 'Baker'},
+                        {'ping': 109, 'name': 'oner'},
+                        {'ping': 101, 'name': '={DM}=CLAN.PLAYER.NEW9099'}
+                    ]
+                }
+            ),
+            ParseResponseTestCase(
+                name='errors for incomplete header',
+                data=b'\xff\xff\xff\xff\x01',
+                wantErrContains='Server returned invalid packet header'
+            ),
+            ParseResponseTestCase(
+                name='errors for incorrect header',
+                data=b'\x00\x00\x00\x00\xffstatusResponse\n',
+                wantErrContains='Server returned invalid packet header'
+            )
+        ]
+
+        for t in tests:
+            # GIVEN
+            server = MedalOfHonorServer('127.0.0.1', 12203)
+            buffer = Buffer(t.data)
+
+            if t.wantErrContains is not None:
+                # WHEN/THEN
+                self.assertRaisesRegex(
+                    PyQ3SLError,
+                    t.wantErrContains,
+                    server.parse_response,
+                    buffer
+                )
+            else:
+                # WHEN
+                actual = server.parse_response(buffer)
 
                 # THEN
                 self.assertDictEqual(t.expected, actual)

@@ -1,8 +1,9 @@
 import socket
-from typing import List
+from typing import List, Optional
 
-from .exceptions import PyQ3SLError
+from .buffer import Buffer
 from .connection import Connection
+from .exceptions import PyQ3SLError
 from .server import Server
 
 
@@ -17,43 +18,41 @@ class PrincipalServer:
         self.connection = Connection(self.address, self.port, network_protocol)
 
     def get_servers(self, query_protocol: int, game_name: str = '', keywords: str = 'full empty',
-                    server_entry_prefix: bytes = b'', timeout: float = 1.0) -> List[Server]:
+                    server_entry_prefix: Optional[bytes] = None, timeout: float = 1.0) -> List[Server]:
         self.connection.set_timeout(timeout)
 
-        # Build command/packet string
-        command = 'getservers '
+        buffer = Buffer(b'\xff' * 4)
+        buffer.write_string('getservers ')
         # Add game name if set
         if game_name != '':
-            command += f'{game_name} '
+            buffer.write_string(f'{game_name} ')
         # Add query protocol and keywords
-        command += f'{query_protocol} {keywords}'
+        buffer.write_string(f'{query_protocol} {keywords}')
 
-        self.connection.write(b'\xff' * 4 + command.encode())
+        self.connection.write(buffer.get_buffer())
         result = self.connection.read()
-        return self.parse_response(result, server_entry_prefix)
+
+        # Server entries are separated by slashes
+        return self.parse_response(result, b'\\', server_entry_prefix)
 
     @staticmethod
-    def parse_response(data: bytes, server_entry_prefix: bytes) -> list:
-        servers = []
-
-        if not data.startswith(b'\xff' * 4 + b'getserversResponse'):
+    def parse_response(buffer: Buffer, sep: Optional[bytes] = None, prefix: Optional[bytes] = None) -> list:
+        if not buffer.has(22) or buffer.read(22) != (b'\xff' * 4 + b'getserversResponse'):
             raise PyQ3SLError('Principal returned invalid data')
 
+        sep_len = len(sep) if sep is not None else 0
         """
-        Some 3rd party implementations of the protocol prefix every server entry with the same
-        byte sequence (CoD4 X for example) => remove the provided prefix before parsing
+        Some 3rd party implementations of the protocol also prefix every server entry with the same
+        byte sequence (CoD4 X for example) => ignore prefix while parsing
         """
-        if server_entry_prefix != b'':
-            data = data.replace(server_entry_prefix, b'')
+        prefix_len = len(prefix) if prefix is not None else 0
 
-        # Server is represented as six byte sequences, separated by backslashes
-        raw_entries = [entry for entry in data.split(b'\\') if len(entry) == 6]
-
-        for entry in raw_entries:
-            # Join first 4 bytes together as IP address
-            ip = '.'.join([str(octet) for octet in entry[0:4]])
-            # Shift 5th byte to the left by 8 bits and add 6th byte to get (query) port
-            port = (entry[4] << 8) + entry[5]
+        # Servers are represented as six byte sequences, plus the length of any separator and prefix
+        servers = []
+        while buffer.has(6 + sep_len + prefix_len):
+            # Skip backspace delimiter and prefix
+            buffer.skip(sep_len + prefix_len)
+            ip, port = buffer.read_ip(), buffer.read_ushort()
 
             # Init and append valid server
             if ip != '0.0.0.0' and port != 0:

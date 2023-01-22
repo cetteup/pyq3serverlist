@@ -1,6 +1,6 @@
 import socket
-from typing import Optional
 
+from .buffer import Buffer
 from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
 
 
@@ -11,7 +11,6 @@ class Connection:
     sock: socket.socket
     timeout: float = 2.0
     is_connected: bool = False
-    buffer: bytes = b''
 
     def __init__(self, address: str, port: int, protocol: int = socket.SOCK_DGRAM):
         self.address = address
@@ -54,36 +53,36 @@ class Connection:
         except socket.error:
             raise PyQ3SLError('Failed to send data to server')
 
-    def read(self) -> Optional[bytes]:
+    def read(self) -> Buffer:
         if not self.is_connected:
             self.connect()
 
-        self.buffer = b''
+        data = b''
         last_packet_length = 0
         receive_next = True
 
         while receive_next:
             try:
                 # Packet size differs from server to server => just read up to max possible UDP size
-                buffer = self.sock.recv(65507)
+                iteration_data = self.sock.recv(65507)
             except socket.timeout:
                 # Raise exception if no data was retrieved at all, else break loop
-                if self.buffer == b'':
+                if data == b'':
                     raise PyQ3SLTimeoutError('Timed out while receiving server data')
                 else:
                     break
             except socket.error:
                 raise PyQ3SLError('Failed to receive data from server')
 
-            self.buffer += buffer
+            data += iteration_data
 
-            buffer_end = buffer[-10:]
+            buffer_end = iteration_data[-10:]
             # Continue to try reading from socket until packets get shorter or peer indicates EOF (in case of TCP)
-            receive_next = (self.protocol == socket.SOCK_DGRAM and len(buffer) >= last_packet_length) or \
+            receive_next = (self.protocol == socket.SOCK_DGRAM and len(iteration_data) >= last_packet_length) or \
                            (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end)
-            last_packet_length = len(buffer)
+            last_packet_length = len(iteration_data)
 
-        return self.buffer
+        return Buffer(data)
 
     def __del__(self):
         self.close()
