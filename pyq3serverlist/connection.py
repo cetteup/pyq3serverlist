@@ -69,10 +69,14 @@ class Connection:
 
             data += iteration_data
 
+            """
+            Continue to try reading from socket until
+            a) packets get shorter (UDP socket) or
+            b) peer indicates EOF/stops returning new data (TCP socket)
+            """
             buffer_end = iteration_data[-10:]
-            # Continue to try reading from socket until packets get shorter or peer indicates EOF (in case of TCP)
             receive_next = (self.protocol == socket.SOCK_DGRAM and len(iteration_data) >= last_packet_length) or \
-                           (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end)
+                           (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end and len(iteration_data) != 0)
             last_packet_length = len(iteration_data)
 
         return Buffer(data)
