@@ -9,7 +9,7 @@ pyq3serverlist.
 Simple Python library for querying Quake 3 based principal servers and their game servers.
 """
 
-__version__ = '0.2.0'
+__version__ = '0.3.0'
 __author__ = 'cetteup'
 __credits__ = 'https://github.com/jacklul'
 __all__ = ['Connection', 'PrincipalServer', 'Server', 'MedalOfHonorServer',  'PyQ3SLError', 'PyQ3SLTimeoutError']
