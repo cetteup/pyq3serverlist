@@ -46,7 +46,7 @@ class PrincipalServer:
 
     @staticmethod
     def parse_response(buffer: Buffer, sep: Optional[bytes] = None, prefix: Optional[bytes] = None) -> list:
-        if not buffer.has(22) or buffer.read(22) != (b'\xff' * 4 + b'getserversResponse'):
+        if not PrincipalServer.buffer_has_packet_header(buffer, sep):
             raise PyQ3SLError('Principal returned invalid data')
 
         sep_len = len(sep) if sep is not None else 0
@@ -56,13 +56,6 @@ class PrincipalServer:
         """
         prefix_len = len(prefix) if prefix is not None else 0
 
-        """
-        Some principals send a few extra bytes before the first server delimiter, Activision for example sends
-        b'\n\x00' => read until we see the first delimiter
-        """
-        while sep is not None and buffer.peek(1) != sep:
-            buffer.skip(1)
-
         # Servers are represented as six byte sequences, plus the length of any separator and prefix
         servers = []
         while buffer.has(6 + sep_len + prefix_len):
@@ -70,8 +63,32 @@ class PrincipalServer:
             buffer.skip(sep_len + prefix_len)
             ip, port = buffer.read_ip(), buffer.read_ushort()
 
+            """
+            Some principals return complete responses in each packet
+            => check for and skip b'\\EOT' and additional headers
+            """
+            if buffer.peek(4) == b'\\EOT':
+                buffer.skip(4)
+            PrincipalServer.buffer_has_packet_header(buffer, sep)
+
             # Init and append valid server
             if ip != '0.0.0.0' and port != 0:
                 servers.append(Server(ip, port))
 
         return servers
+
+    @staticmethod
+    def buffer_has_packet_header(buffer: Buffer, sep: Optional[bytes] = None) -> bool:
+        if buffer.peek(22) != (b'\xff' * 4 + b'getserversResponse'):
+            return False
+
+        buffer.skip(22)
+
+        """
+        Some principals send a few extra bytes before the first server delimiter, Activision for example sends
+        b'\n\x00' => read until we see the first delimiter
+        """
+        while sep is not None and buffer.peek(1) != sep:
+            buffer.skip(1)
+
+        return True
