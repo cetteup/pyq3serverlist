@@ -36,6 +36,20 @@ class PrincipalTest(unittest.TestCase):
                 ]
             ),
             ParseResponseTestCase(
+                name='parses empty list response packet',
+                data=b'\xff\xff\xff\xffgetserversResponse\\EOT',
+                separator=b'\\',
+                expected=[]
+            ),
+            ParseResponseTestCase(
+                name='parses response packet with extra header data',
+                data=b'\xff\xff\xff\xffgetserversResponse\n\x00\\\x7f\x00\x00\x01m8\\EOT',
+                separator=b'\\',
+                expected=[
+                    Server('127.0.0.1', 27960)
+                ]
+            ),
+            ParseResponseTestCase(
                 name='parses response packet without trailing \\EOT',
                 data=b'\xff\xff\xff\xffgetserversResponse\\\x7f\x00\x00\x01m8',
                 separator=b'\\',

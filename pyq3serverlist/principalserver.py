@@ -56,6 +56,13 @@ class PrincipalServer:
         """
         prefix_len = len(prefix) if prefix is not None else 0
 
+        """
+        Some principals send a few extra bytes before the first server delimiter, Activision for example sends
+        b'\n\x00' => read until we see the first delimiter
+        """
+        while sep is not None and buffer.peek(1) != sep:
+            buffer.skip(1)
+
         # Servers are represented as six byte sequences, plus the length of any separator and prefix
         servers = []
         while buffer.has(6 + sep_len + prefix_len):
