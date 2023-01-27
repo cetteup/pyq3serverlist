@@ -2,6 +2,7 @@ import socket
 
 from .buffer import Buffer
 from .exceptions import PyQ3SLError, PyQ3SLTimeoutError
+from .logger import logger
 
 
 class Connection:
@@ -27,6 +28,8 @@ class Connection:
         self.sock = socket.socket(socket.AF_INET, self.protocol)
         self.sock.settimeout(self.timeout)
 
+        logger.debug(f'Connecting to {self.address}:{self.port}')
+
         try:
             self.sock.connect((self.address, self.port))
             self.is_connected = True
@@ -41,14 +44,20 @@ class Connection:
         if not self.is_connected:
             self.connect()
 
+        logger.debug('Writing to socket')
+
         try:
             self.sock.sendall(data)
         except socket.error:
             raise PyQ3SLError('Failed to send data to server')
 
+        logger.debug(f'Sent data: {data.hex(" ")}')
+
     def read(self) -> Buffer:
         if not self.is_connected:
             self.connect()
+
+        logger.debug('Reading from socket')
 
         data = b''
         last_packet_length = 0
@@ -78,6 +87,8 @@ class Connection:
             receive_next = (self.protocol == socket.SOCK_DGRAM and len(iteration_data) >= last_packet_length) or \
                            (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end and len(iteration_data) != 0)
             last_packet_length = len(iteration_data)
+
+        logger.debug(f'Received data: {data.hex(" ")}')
 
         return Buffer(data)
 
