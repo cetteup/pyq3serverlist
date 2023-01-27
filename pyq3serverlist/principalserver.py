@@ -65,10 +65,12 @@ class PrincipalServer:
 
             """
             Some principals return complete responses in each packet
-            => check for and skip b'\\EOT' and additional headers
+            => check for and skip b'\\EOT' or b'\\EOT\x00' and additional headers
             """
             if buffer.peek(4) == b'\\EOT':
                 buffer.skip(4)
+                if buffer.peek(1) == b'\x00':
+                    buffer.skip(1)
             PrincipalServer.buffer_has_packet_header(buffer, sep)
 
             # Init and append valid server

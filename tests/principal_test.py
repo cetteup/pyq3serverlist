@@ -76,6 +76,15 @@ class PrincipalTest(unittest.TestCase):
                 ]
             ),
             ParseResponseTestCase(
+                name='parses response packet with multiple headers with null byte after \\EOT',
+                data=b'\xff\xff\xff\xffgetserversResponse\\\x7f\x00\x00\x01m8\\EOT\x00\xff\xff\xff\xffgetserversResponse\\\x7f\x00\x00\x02m9\\EOT\x00',
+                separator=b'\\',
+                expected=[
+                    Server('127.0.0.1', 27960),
+                    Server('127.0.0.2', 27961)
+                ]
+            ),
+            ParseResponseTestCase(
                 name='parses response packet with multiple headers without tailing \\EOT',
                 data=b'\xff\xff\xff\xffgetserversResponse\\\x7f\x00\x00\x01m8\xff\xff\xff\xffgetserversResponse\\\x7f\x00\x00\x02m9',
                 separator=b'\\',
