@@ -1,6 +1,6 @@
 from pyq3serverlist import PrincipalServer, PyQ3SLError, PyQ3SLTimeoutError
 
-principal = PrincipalServer('master.quake3arena.com', 27950)
+principal = PrincipalServer('dpmaster.deathmask.net', 27950)
 
 servers = []
 try:

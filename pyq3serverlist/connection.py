@@ -59,34 +59,13 @@ class Connection:
 
         logger.debug('Reading from socket')
 
-        data = b''
-        last_packet_length = 0
-        receive_next = True
-
-        while receive_next:
-            try:
-                # Packet size differs from server to server => just read up to max possible UDP size
-                iteration_data = self.sock.recv(65507)
-            except socket.timeout:
-                # Raise exception if no data was retrieved at all, else break loop
-                if data == b'':
-                    raise PyQ3SLTimeoutError('Timed out while receiving server data')
-                else:
-                    break
-            except socket.error:
-                raise PyQ3SLError('Failed to receive data from server')
-
-            data += iteration_data
-
-            """
-            Continue to try reading from socket until
-            a) packets get shorter (UDP socket) or
-            b) peer indicates EOF/stops returning new data (TCP socket)
-            """
-            buffer_end = iteration_data[-10:]
-            receive_next = (self.protocol == socket.SOCK_DGRAM and len(iteration_data) >= last_packet_length) or \
-                           (self.protocol == socket.SOCK_STREAM and b'EOF' not in buffer_end and len(iteration_data) != 0)
-            last_packet_length = len(iteration_data)
+        try:
+            # Packet size differs from server to server => read up to max possible UDP size
+            data = self.sock.recv(65507)
+        except socket.timeout:
+            raise PyQ3SLTimeoutError('Timed out while receiving server data')
+        except socket.error:
+            raise PyQ3SLError('Failed to receive data from server')
 
         logger.debug(f'Received data: {data.hex(" ")}')
 
