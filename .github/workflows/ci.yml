@@ -19,9 +19,9 @@ jobs:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v6.1.0
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v6.3.0
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip' # caching pip dependencies
@@ -47,9 +47,9 @@ jobs:
         os: [ ubuntu-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v6
+    - uses: actions/checkout@v6.1.0
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v6.3.0
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip' # caching pip dependencies
